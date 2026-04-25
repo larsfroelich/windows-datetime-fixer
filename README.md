@@ -17,14 +17,12 @@ A minimal, headless Rust application for Windows 11 that ensures your system clo
 - **Privileges**: Normal user for background operation; Administrator prompt will appear only when time correction is required.
 
 ## Installation
+For now, File Kraken is still in development and there is no initial release yet.
+To build and install directly from source, you can use
 
-1. Clone the repository and navigate to the project folder.
-2. Build the optimized release binary:
-   ```bash
-   cargo build --release
-   ```
-3. Move the binary `target/release/windows-datetime-fixer.exe` to a permanent location.
-4. Run the application once. It will:
+`cargo install --git https://github.com/larsfroelich/windows-datetime-fixer.git`
+
+Then, run the application once. It will:
    - Create a configuration folder at `%APPDATA%\WDTF`.
    - Register itself for autostart.
    - Perform an initial time check.
