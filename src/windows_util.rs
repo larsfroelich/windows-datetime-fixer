@@ -9,9 +9,11 @@ use windows::Win32::UI::Shell::ShellExecuteW;
 #[cfg(windows)]
 use windows::Win32::UI::WindowsAndMessaging::{MessageBoxW, MB_OK, MB_ICONERROR, SW_SHOWNORMAL};
 #[cfg(windows)]
-use windows::Win32::System::Threading::{OpenProcessToken, GetTokenInformation, TokenElevation, TOKEN_QUERY};
+use windows::Win32::System::Threading::{OpenProcessToken};
 #[cfg(windows)]
 use windows::core::HSTRING;
+#[cfg(windows)]
+use windows::Win32::Security::{TOKEN_QUERY, TokenElevation, GetTokenInformation};
 
 use std::process::Command;
 use std::env;
@@ -49,7 +51,7 @@ pub fn elevate_self() -> Result<(), String> {
 
     unsafe {
         let result = ShellExecuteW(
-            HWND(0),
+            HWND(std::ptr::null_mut()),
             windows::core::PCWSTR(runas_u16.as_ptr()),
             windows::core::PCWSTR(exe_path_u16.as_ptr()),
             None,
@@ -60,7 +62,7 @@ pub fn elevate_self() -> Result<(), String> {
         if result.0 as isize > 32 {
             Ok(())
         } else {
-            Err(format!("ShellExecuteW failed with error code: {}", result.0))
+            Err(format!("ShellExecuteW failed with error code: {:?}", result.0))
         }
     }
 }
@@ -92,7 +94,7 @@ pub fn show_error(message: &str) {
         let title = HSTRING::from("WDTF Error");
         let msg = HSTRING::from(message);
         unsafe {
-            MessageBoxW(HWND(0), &msg, &title, MB_OK | MB_ICONERROR);
+            MessageBoxW(HWND(std::ptr::null_mut()), &msg, &title, MB_OK | MB_ICONERROR);
         }
     }
     #[cfg(not(windows))]
