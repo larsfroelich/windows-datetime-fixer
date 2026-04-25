@@ -1,3 +1,4 @@
+// prevents a console window from appearing on Windows in release builds.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod config;
@@ -12,7 +13,7 @@ use std::time::Duration;
 fn main() {
     // Load config and init logging
     let config = config::load_config();
-    logging::init_logging();
+    logging::init_logging(&config.log_level);
 
     log::info!("WDTF started");
 

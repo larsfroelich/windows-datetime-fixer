@@ -42,6 +42,9 @@ check_interval_minutes = 12
 
 # Maximum allowed drift (in seconds) before triggering a fix
 drift_threshold_seconds = 10
+
+# Log level (error, warn, info, debug, trace)
+log_level = "info"
 ```
 
 ## Logs

@@ -11,6 +11,8 @@ pub struct Config {
     pub check_interval_minutes: u64,
     /// Drift in seconds that triggers a system resync.
     pub drift_threshold_seconds: i64,
+    /// Log level (error, warn, info, debug, trace)
+    pub log_level: String,
 }
 
 impl Default for Config {
@@ -19,6 +21,7 @@ impl Default for Config {
             ntp_server: "pool.ntp.org:123".to_string(),
             check_interval_minutes: 12,
             drift_threshold_seconds: 10,
+            log_level: "info".to_string(),
         }
     }
 }
