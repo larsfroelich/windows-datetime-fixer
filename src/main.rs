@@ -17,6 +17,16 @@ fn main() {
 
     log::info!("WDTF started");
 
+    // Ensure only one instance is running
+    let _mutex_handle = match windows_util::acquire_single_instance_mutex("Local\\WDTF_SingleInstance_Mutex") {
+        Ok(handle) => handle,
+        Err(e) => {
+            log::warn!("Another instance is already running. Exiting. ({})", e);
+            windows_util::show_warning("Another instance of WDTF is already running.");
+            return;
+        }
+    };
+
     // Register for autostart
     if let Err(e) = windows_util::register_autostart() {
         log::error!("Failed to register autostart: {}", e);
