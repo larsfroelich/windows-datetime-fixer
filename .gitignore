@@ -1,1 +1,5 @@
+# Rust Artifacts
 /target
+
+# JetBrains IDEs
+.idea/
