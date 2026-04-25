@@ -2,10 +2,14 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
 
+/// Application configuration structure.
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
+    /// NTP server address, e.g., "pool.ntp.org:123"
     pub ntp_server: String,
+    /// Interval between time checks in minutes.
     pub check_interval_minutes: u64,
+    /// Drift in seconds that triggers a system resync.
     pub drift_threshold_seconds: i64,
 }
 
@@ -19,6 +23,7 @@ impl Default for Config {
     }
 }
 
+/// Returns the path to the application's configuration directory in %APPDATA%.
 pub fn get_config_dir() -> Option<PathBuf> {
     #[cfg(windows)]
     {
@@ -26,11 +31,12 @@ pub fn get_config_dir() -> Option<PathBuf> {
     }
     #[cfg(not(windows))]
     {
-        // Fallback for development on non-windows
+        // Fallback for development/testing on non-windows platforms.
         directories::ProjectDirs::from("", "", "WDTF").map(|pd| pd.config_dir().to_path_buf())
     }
 }
 
+/// Loads the configuration from disk or creates a default one if it doesn't exist.
 pub fn load_config() -> Config {
     let config_dir = get_config_dir().expect("Could not determine config directory");
     let config_path = config_dir.join("config.toml");
@@ -53,6 +59,7 @@ pub fn load_config() -> Config {
     }
 }
 
+/// Saves the provided configuration to the standard location.
 pub fn save_config(config: &Config) {
     let config_dir = get_config_dir().expect("Could not determine config directory");
     let config_path = config_dir.join("config.toml");

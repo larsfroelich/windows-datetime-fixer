@@ -18,6 +18,7 @@ use windows::Win32::Security::{TOKEN_QUERY, TokenElevation, GetTokenInformation}
 use std::process::Command;
 use std::env;
 
+/// Checks if the current process has Administrator privileges.
 #[cfg(windows)]
 pub fn is_admin() -> bool {
     let mut token: HANDLE = HANDLE::default();
@@ -43,6 +44,7 @@ pub fn is_admin() -> bool {
 #[cfg(not(windows))]
 pub fn is_admin() -> bool { false }
 
+/// Re-launches the current application with Administrator privileges using the 'runas' verb.
 #[cfg(windows)]
 pub fn elevate_self() -> Result<(), String> {
     let exe_path = env::current_exe().map_err(|e| e.to_string())?;
@@ -70,10 +72,12 @@ pub fn elevate_self() -> Result<(), String> {
 #[cfg(not(windows))]
 pub fn elevate_self() -> Result<(), String> { Err("Not implemented on this platform".to_string()) }
 
+/// Triggers the Windows Time service to synchronize the system clock.
 pub fn resync_time() -> Result<(), String> {
-    // Try to start w32time service just in case
+    // Ensure the Windows Time service (w32time) is running.
     let _ = Command::new("net").args(["start", "w32time"]).output();
 
+    // Force a resynchronization.
     let output = Command::new("w32tm")
         .args(["/resync"])
         .output()
@@ -88,6 +92,7 @@ pub fn resync_time() -> Result<(), String> {
     }
 }
 
+/// Displays an error message box to the user.
 pub fn show_error(message: &str) {
     #[cfg(windows)]
     {
@@ -103,6 +108,7 @@ pub fn show_error(message: &str) {
     }
 }
 
+/// Registers the application to run at startup by creating a shortcut in the Startup folder.
 pub fn register_autostart() -> Result<(), String> {
     let exe_path = env::current_exe().map_err(|e| e.to_string())?;
     #[cfg(windows)]
@@ -115,8 +121,8 @@ pub fn register_autostart() -> Result<(), String> {
         let shortcut_path = startup_folder.join("WDTF.url");
 
         if !shortcut_path.exists() {
-            // A .url file is a simple way to create a shortcut without complex COM interfaces
-            // We use file:/// for local files.
+            // A .url file is a simple way to create a shortcut without complex COM interfaces.
+            // Using file:/// for local paths is supported by the Windows shell.
             let content = format!(
                 "[InternetShortcut]\nURL=file:///{}\n",
                 exe_path.to_string_lossy().replace('\\', "/")

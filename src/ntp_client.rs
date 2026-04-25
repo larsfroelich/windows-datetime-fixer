@@ -2,13 +2,20 @@ use ntp::request;
 use chrono::{DateTime, Utc, TimeZone};
 use std::net::ToSocketAddrs;
 
+/// Queries an NTP server and returns the current UTC time.
+///
+/// # Arguments
+/// * `server` - The NTP server address (e.g. "pool.ntp.org:123")
 pub fn get_ntp_time(server: &str) -> Result<DateTime<Utc>, String> {
     let addrs = server.to_socket_addrs().map_err(|e| format!("Failed to resolve NTP server address: {}", e))?;
 
     for addr in addrs {
         match request(addr) {
             Ok(packet) => {
+                // NTP seconds are relative to 1900-01-01 00:00:00 UTC.
                 let ntp_seconds = packet.transmit_time.sec as i64;
+
+                // Unix epoch (1970-01-01) is 2,208,988,800 seconds after NTP epoch.
                 let unix_seconds = ntp_seconds - 2208988800;
 
                 return Ok(Utc.timestamp_opt(unix_seconds, 0).unwrap());
