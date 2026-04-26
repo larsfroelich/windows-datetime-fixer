@@ -3,13 +3,13 @@ use std::ffi::OsStr;
 #[cfg(windows)]
 use std::os::windows::ffi::OsStrExt;
 #[cfg(windows)]
-use windows::Win32::Foundation::{HWND, HANDLE, CloseHandle};
+use windows::Win32::Foundation::{HWND, HANDLE, CloseHandle, WAIT_ABANDONED};
 #[cfg(windows)]
 use windows::Win32::UI::Shell::ShellExecuteW;
 #[cfg(windows)]
-use windows::Win32::UI::WindowsAndMessaging::{MessageBoxW, MB_OK, MB_ICONERROR, SW_SHOWNORMAL};
+use windows::Win32::UI::WindowsAndMessaging::{MessageBoxW, MB_OK, MB_ICONERROR, MB_ICONWARNING, SW_SHOWNORMAL};
 #[cfg(windows)]
-use windows::Win32::System::Threading::{OpenProcessToken};
+use windows::Win32::System::Threading::{OpenProcessToken, CreateMutexW, WaitForSingleObject, WAIT_OBJECT_0, WAIT_TIMEOUT};
 #[cfg(windows)]
 use windows::core::HSTRING;
 #[cfg(windows)]
@@ -17,6 +17,11 @@ use windows::Win32::Security::{TOKEN_QUERY, TokenElevation, GetTokenInformation}
 
 use std::process::Command;
 use std::env;
+
+#[cfg(windows)]
+pub type MutexHandle = HANDLE;
+#[cfg(not(windows))]
+pub type MutexHandle = ();
 
 /// Checks if the current process has Administrator privileges.
 #[cfg(windows)]
@@ -40,6 +45,9 @@ pub fn is_admin() -> bool {
         }
     }
 }
+
+#[cfg(not(windows))]
+pub fn acquire_single_instance_mutex(_name: &str) -> Result<MutexHandle, String> { Ok(()) }
 
 #[cfg(not(windows))]
 pub fn is_admin() -> bool { false }
@@ -105,6 +113,54 @@ pub fn show_error(message: &str) {
     #[cfg(not(windows))]
     {
         eprintln!("Error: {}", message);
+    }
+}
+
+/// Displays a warning message box to the user.
+pub fn show_warning(message: &str) {
+    #[cfg(windows)]
+    {
+        let title = HSTRING::from("WDTF Warning");
+        let msg = HSTRING::from(message);
+        unsafe {
+            MessageBoxW(HWND(std::ptr::null_mut()), &msg, &title, MB_OK | MB_ICONWARNING);
+        }
+    }
+    #[cfg(not(windows))]
+    {
+        println!("Warning: {}", message);
+    }
+}
+
+/// Attempts to acquire a named mutex to ensure only one instance is running.
+/// If the mutex is already held, it waits for a short period (e.g. for elevation hand-off).
+#[cfg(windows)]
+pub fn acquire_single_instance_mutex(name: &str) -> Result<MutexHandle, String> {
+    let name_u16: Vec<u16> = OsStr::new(name).encode_wide().chain(Some(0)).collect();
+    unsafe {
+        let handle = CreateMutexW(
+            None,
+            false,
+            windows::core::PCWSTR(name_u16.as_ptr()),
+        ).map_err(|e| format!("CreateMutexW failed: {}", e))?;
+
+        if handle.is_invalid() {
+            return Err("CreateMutexW returned an invalid handle".to_string());
+        }
+
+        // Wait up to 5 seconds for the mutex. This allows time for a previous instance
+        // (e.g. one that just triggered elevation) to exit.
+        let result = WaitForSingleObject(handle, 5000);
+
+        if result == WAIT_OBJECT_0 || result == WAIT_ABANDONED {
+            Ok(handle)
+        } else if result == WAIT_TIMEOUT {
+            let _ = CloseHandle(handle);
+            Err("Another instance is already running".to_string())
+        } else {
+            let _ = CloseHandle(handle);
+            Err(format!("WaitForSingleObject failed with result: {:?}", result))
+        }
     }
 }
 
