@@ -1,6 +1,7 @@
 # Windows Date/Time Fixer (WDTF)
 
-A minimal, headless Rust application for Windows 11 that ensures your system clock stays synchronized with high-precision NTP servers.
+Ever struggle with your Windows Operating System being unable to keep track of time?
+WDTF is a minimal, headless Rust application for Windows 11 that ensures your system clock stays synchronized with high-precision NTP servers.
 
 ## Features
 
@@ -17,12 +18,14 @@ A minimal, headless Rust application for Windows 11 that ensures your system clo
 - **Privileges**: Normal user for background operation; Administrator prompt will appear only when time correction is required.
 
 ## Installation
-For now, File Kraken is still in development and there is no initial release yet.
+For now, Windows Date/Time Fixer (WDTF) is still in development and there is no initial release yet.
 To build and install directly from source, you can use
 
 `cargo install --git https://github.com/larsfroelich/windows-datetime-fixer.git`
 
-Then, run the application once. It will:
+Then, run the application once: `windows-datetime-fixer.exe`
+
+It will:
    - Create a configuration folder at `%APPDATA%\WDTF`.
    - Register itself for autostart.
    - Perform an initial time check.
