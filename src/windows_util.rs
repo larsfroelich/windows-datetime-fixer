@@ -3,13 +3,13 @@ use std::ffi::OsStr;
 #[cfg(windows)]
 use std::os::windows::ffi::OsStrExt;
 #[cfg(windows)]
-use windows::Win32::Foundation::{HWND, HANDLE, CloseHandle, WAIT_ABANDONED};
+use windows::Win32::Foundation::{HWND, HANDLE, CloseHandle, WAIT_ABANDONED, WAIT_OBJECT_0, WAIT_TIMEOUT};
 #[cfg(windows)]
 use windows::Win32::UI::Shell::ShellExecuteW;
 #[cfg(windows)]
 use windows::Win32::UI::WindowsAndMessaging::{MessageBoxW, MB_OK, MB_ICONERROR, MB_ICONWARNING, SW_SHOWNORMAL};
 #[cfg(windows)]
-use windows::Win32::System::Threading::{OpenProcessToken, CreateMutexW, WaitForSingleObject, WAIT_OBJECT_0, WAIT_TIMEOUT};
+use windows::Win32::System::Threading::{OpenProcessToken, CreateMutexW, WaitForSingleObject};
 #[cfg(windows)]
 use windows::core::HSTRING;
 #[cfg(windows)]
